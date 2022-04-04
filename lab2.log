@@ -1,0 +1,75 @@
+### KONFIGURACJA
+
+$ tar -xJf buildroot-2022.02.tar.xz
+• Wstępna konfiguracja
+$ cd buildroot-2022.02
+$ make raspberrypi4_64_defconfig
+
+„Build options/Mirrors and Download locations/Primary download site”: należy ustawić
+na „http://192.168.137.24/dl”
+
+W sekcji „Toolchain/Toolchain type” proszę wybrać „External toolchain”. Domyślna
+wersja „Arm AArch64 2021.07” powinna działać dobrze.
+◦ Aby jeszcze bardziej przyspieszyć kompilację, należy włączyć narzędzie „ccache” w
+„Build options/Enable compiler cache”.
+ Położenie katalogu używanego przez „ccache” zmieniamy opcją BR2_CCACHE_DIR
+(„Compiler cache location”). Wskazane jest umieszczenie tego katalogu w Państwa
+podkatalogu katalogu „/malina”. Sugerowana nazwa to
+„/malina/podkatalog_usera/ccache-br”. Narzędzie czyszczące katalog „/malina” będzie
+się STARAŁO zachować ten katalog (o ile nie będzie zbyt duży).
+◦ Proszę pamiętać o odpowiednim ustawieniu postaci generowanego obrazu systemu (w
+sekcji „Filesystem images” (zwykle powinno być wybrane „initial RAM filesystem
+linked into linux kernel”, lecz można zostawić dodatkowo wybrane ext2/3/4, aby
+uniknąć niepokojących komunikatów o błędach. Może być też konieczne zwiększenie
+rozmiaru generowanego obrazu ext4). Dla ramdysku startowego Proszę włączyć
+kompresję gzip dla obrazu „cpio” („Compression method (gzip)”).
+
+Może też wystąpić problem z niedostateczną wielkością partycji VFAT (domyślnie ma ona tylko
+32MB!). Ten problem wymaga ręcznej korekty wielkości tej partycji w pliku „board/raspberrypi4-
+64/genimage-raspberrypi4-64.cfg”. Powinniśmy znaleźć tam fragment:
+image boot.vfat {
+vfat {
+files = {
+"bcm2711-rpi-4-b.dtb",
+"rpi-firmware/cmdline.txt",
+"rpi-firmware/config.txt",
+"rpi-firmware/fixup4.dat",
+"rpi-firmware/start4.elf",
+"rpi-firmware/overlays",
+"Image"
+}
+}
+size = 32M
+}
+i zmienić w nim wielkość (size) z 32M na 128M.
+
+
+
+System configuration -> system banner -> zmiana na Welcome to My Buildroot (tylko dla szybkiego upewnienia się, że jest dobra wersja)
+
+Target packages -> Libraries -> Hardware handling -> libgpiod
+
+make clean
+make -> żeby zbudował się kompilator do cross-compile
+
+potem próba kompilacji - ok
+
+dodałem paczkę
+
+i w make menuconfig była opcja
+
+Target packages -> red_diode
+
+make
+
+i teraz wrzucamy system na raspberry (trzeba było rozszerzyć partycję) (ext4 i Image)
+
+restart 
+
+
+PROGRAM
+
+
+package zawiera stare pliki programu!
+
+napisałem bibliotekę i prosty program -> w końcu zadziałał
