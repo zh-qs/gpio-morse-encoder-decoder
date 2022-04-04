@@ -60,14 +60,17 @@ char morse_getchar_delay(struct board *b, enum read_status *status, struct times
             if (res == 0) // timeout
             {
                 *status = NEW_WORD;
+                turn_on_diode(b->diode2_yellow);
                 return ' ';
             }
             // tu trzeba przejść za pierwsze czekanie w NEW WORD
+            turn_off_diode(b->diode3_green);
             break;
         case NEW_WORD:
             // czekaj bez końca na SW1 lub STOP
             res = wait_for_switches_then_get_line_and_time_pressed(b->switch13, &switch_time, &line, NULL);
-            
+            turn_off_diode(b->diode3_green);
+            turn_off_diode(b->diode2_yellow);
             break;
         default:
             return '\0';
@@ -78,6 +81,7 @@ char morse_getchar_delay(struct board *b, enum read_status *status, struct times
         if (res == 0) // timeout
         {
             *status = NEW_CHAR;
+            turn_on_diode(b->diode3_green);
             return node->found_char;
         }
         if (line == b->switch3) // STOP
@@ -100,9 +104,6 @@ char morse_getchar_delay(struct board *b, enum read_status *status, struct times
         // czekaj 3 kropki na SW1 lub STOP
         res = wait_for_switches_then_get_line_and_time_pressed(b->switch13, &switch_time, &line, &three_dot_time);
     }
-
-    *status = NEW_CHAR;
-    turn_off_diode(b->diode3_green);
 }
 
 // w trybie nowe słowo czekamy bez końca na SW1 lub STOP
