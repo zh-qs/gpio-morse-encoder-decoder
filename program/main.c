@@ -6,7 +6,7 @@
 #define XSTR(s) STR(s)
 
 #define MAX_STRING 1000
-#define SCANF_PATTERN "%" XSTR(MAX_STRING) "d"
+//#define SCANF_PATTERN "%" XSTR(MAX_STRING) "d"
 
 enum mode
 {
@@ -33,14 +33,14 @@ void encode_mode(struct board *b)
     scanf(" %c", &c);
     printf("Nadawanie...");
     fflush(stdout);
-    turn_on_diode(b->diode4_red);
+    turn_on_diode(b->diode1_red);
     while (c!='\n')
     {
         send_char(b, c);
         scanf("%c", &c);
     } 
     //send_string(b, str);
-    turn_off_diode(b->diode4_red);
+    turn_off_diode(b->diode1_red);
     printf("OK\n");
 }
 
@@ -73,7 +73,7 @@ int main()
     struct board b;
     register_board(&b);
     
-    while (true)
+    while (TRUE)
     {
         enum mode m = get_mode();
         if (m == EXIT) break;

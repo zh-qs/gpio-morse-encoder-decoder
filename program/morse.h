@@ -5,7 +5,7 @@
 #include "time_operations.h"
 #include "morse_search_tree.h"
 
-#define DOT_TIME_US 500000
+#define DOT_TIME_US 300000
 #define N_CALIBRATION 10
 
 enum read_status
@@ -13,7 +13,7 @@ enum read_status
     NEW_WORD,
     NEW_CHAR,
     STOP
-}
+};
 
 enum recognition_method 
 {
@@ -31,78 +31,5 @@ void send_string(struct board *b, const char *str);
 void send_char(struct board *b, char c);
 char morse_getchar(struct board *b, enum read_status *status, struct morse_getchar_options *options);
 void calibrate(struct board *b, struct timespec *dot_time);
-
-const char *morse_codes[] = 
-{
-    "", // (no code)  
-
-    " ", // (space)
-    "-.-.--", //!
-    ".-..-.", //"
-    "", //#
-    "", //$
-    "", //%
-    "", //&
-    ".----.", //'
-    "-.--.", //(
-    "-.--.-", //)
-    "", //*
-    ".-.-.", //+
-    "--..--", //,
-    "-....-", //-
-    ".-.-.-", //. 
-    "-..-.", // /
-
-    "-----", //0
-    ".----", //1
-    "..---", //2
-    "...--", //3
-    "....-", //4
-    ".....", //5
-    "-....", //6
-    "--...", //7
-    "---..", //8
-    "----.", //9
-
-    "---...", //:
-    "-.-.-.", //;
-    "", //<
-    "-...-", //=
-    "", //>
-    "..--..", //?
-    ".--.-." //@
-
-    ".-", //A
-    "-...", //B
-    "-.-.", //C
-    "-..", //D
-    ".", //E
-    "..-.", //F
-    "--.", //G
-    "....", //H
-    "..", //I
-    ".---", //J
-    "-.-", //K
-    ".-..", //L
-    "--", //M
-    "-.", //N
-    "---", //O
-    ".--.", //P
-    "--.-", //Q
-    ".-.", //R
-    "...", //S
-    "-", //T
-    "..-", //U
-    "...-", //V
-    ".--", //W
-    "-..-", //X
-    "-.--", //Y
-    "--..", //Z
-
-    "..--.-", //_
-    
-};
-
-
 
 #endif

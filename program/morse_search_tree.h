@@ -8,6 +8,6 @@ struct morse_search_tree
     struct morse_search_tree *dash;
 };
 
-const struct morse_search_tree morse_tree;
+struct morse_search_tree *get_morse_tree();
 
 #endif

@@ -15,6 +15,6 @@ void add_to_average(struct timespec *avg, struct timespec *ts, int n);
 // res = ts * n
 void multiply_time(long long n, struct timespec *ts, struct timespec *res);
 // t1 > t2
-bool time_greater(struct timespec *t1, struct timespec *t2);
+int time_greater(struct timespec *t1, struct timespec *t2);
 
 #endif

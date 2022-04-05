@@ -1,8 +1,13 @@
 #include "boardctl.h"
 #include "time_operations.h"
 
+#ifndef WITH_GPIO
+#include <stdio.h>
+#endif
+
 void register_board(struct board *b)
 {
+#ifdef WITH_GPIO
     b->chip = gpiod_chip_open_by_name(CHIPNAME);
 
     b->diode1_red = gpiod_chip_get_line(b->chip, LINED1);
@@ -37,27 +42,47 @@ void register_board(struct board *b)
     gpiod_line_bulk_add_line(b->switch13, b->switch1);
     gpiod_line_bulk_add_line(b->switch13, b->switch2);
     gpiod_line_bulk_add_line(b->switch13, b->switch3);
-
-    // request events!
+#else
+    b->switch1 = SW1;
+    b->switch2 = SW2;
+    b->switch3 = SW3;
+    b->switch4 = SW4;
+#endif
+    
 }
 
 void turn_on_diode(struct gpiod_line *diode)
 {
+#ifdef WITH_GPIO
     gpiod_line_set_value(diode, HIGH);
+#else
+    printf("(");
+    fflush(stdout);
+#endif
 }
 
 void turn_off_diode(struct gpiod_line *diode)
 {
+#ifdef WITH_GPIO
     gpiod_line_set_value(diode, LOW);
+#else
+    printf(")");
+    fflush(stdout);
+#endif
 }
 
 int is_switch_pressed(struct gpiod_line *sw)
 {
+#ifdef WITH_GPIO
     return !gpiod_line_get_value(sw);
+#else
+    return 0;
+#endif
 }
 
 void unregister_board(struct board *b)
 {
+#ifdef WITH_GPIO
     gpiod_line_bulk_free(b->switch13);
     gpiod_line_bulk_free(b->switch123);
 
@@ -72,10 +97,12 @@ void unregister_board(struct board *b)
     gpiod_line_release(b->switch4);
 
     gpiod_chip_close(b->chip);
+#endif
 }
 
 int wait_for_switch_then_get_time_pressed(struct gpiod_line *line, struct timespec *time)
 {
+#ifdef WITH_GPIO
     struct gpiod_line_event event;
     struct timespec old_time;
     gpiod_line_event_read(line, &event);
@@ -92,30 +119,42 @@ int wait_for_switch_then_get_time_pressed(struct gpiod_line *line, struct timesp
     }
     diff_timespec(&(event->ts), &old_time, time);
     return 1;
+#else
+    char c;
+    scanf(" %c",&c);
+    time->tv_sec=1;
+    time->tv_nsec=0;
+    return 1;
+#endif
 }
 
 void clear_line_buffer(struct gpiod_line *line)
 {
+#ifdef WITH_GPIO
     struct timespec timeout = {0,0};
     struct gpiod_line_event e;
     while (gpiod_line_event_wait(line, &timeout))
     {
         gpiod_line_event_read(line, &e);
     }
+#endif
 }
 
-void clear_line_buffer_func(struct gpiod_line *line, void*)
+void clear_line_buffer_func(struct gpiod_line *line, void *buf)
 {
     clear_line_buffer(line);
 }
 
 void clear_line_buffer_bulk(struct gpiod_line_bulk *line_bulk)
 {
+#ifdef WITH_GPIO
     gpiod_line_bulk_foreach_line(line_bulk, clear_line_buffer_func, NULL);
+#endif
 }
 
 int wait_for_switches_then_get_line_and_time_pressed(struct gpiod_line_bulk *line_bulk, struct timespec *time, struct gpiod_line **pline, struct timespec *timeout)
 {
+#ifdef WITH_GPIO
     struct gpiod_line_bulk *event_bulk = gpiod_line_bulk_new(3);
     struct gpiod_line_event event;
     struct gpiod_line *event_line;
@@ -143,5 +182,36 @@ int wait_for_switches_then_get_line_and_time_pressed(struct gpiod_line_bulk *lin
 
     gpiod_line_bulk_free(event_bulk);
     return 1;
+#else
+    char c;
+    scanf(" %c",&c);
+    time->tv_nsec=0;
+    time->tv_sec=0;
+    switch (c)
+    {
+    case '1':
+        *pline = SW1;
+        break;
+    case '2':
+        *pline = SW2;
+        break;
+    case '3':
+        *pline = SW3;
+        break;
+    case '4':
+        *pline = SW4;
+        break;
+    case '.':
+        *pline = SW1;
+        break;
+    case '-':
+        time->tv_sec=4;
+        *pline = SW1;
+        break;
+    default:
+        return 0;
+    }
+    return 1;
+#endif
 }
 

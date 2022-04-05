@@ -1,7 +1,53 @@
 #ifndef BOARDCTL_H
 #define BOARDCTL_H
 
+//#define WITH_GPIO
+
+#ifdef WITH_GPIO
+
 #include <gpiod.h>
+
+#else
+
+#include <time.h>
+
+struct dummy
+{
+    int dummy_value;
+};
+#define gpiod_chip dummy
+#define gpiod_line dummy
+#define gpiod_line_bulk dummy
+
+#define SW1 (void*)1
+#define SW2 (void*)2
+#define SW3 (void*)3
+#define SW4 (void*)4
+
+/**
+ * @brief Event types.
+ */
+enum {
+	GPIOD_LINE_EVENT_RISING_EDGE = 1,
+	/**< Rising edge event. */
+	GPIOD_LINE_EVENT_FALLING_EDGE,
+	/**< Falling edge event. */
+};
+
+/**
+ * @brief Structure holding event info.
+ */
+struct gpiod_line_event {
+	struct timespec ts;
+	/**< Best estimate of time of event occurrence. */
+	int event_type;
+	/**< Type of the event that occurred. */
+	int offset;
+	/**< Offset of line on which the event occurred. */
+};
+
+#endif
+
 #include <time.h>
 
 #define CHIPNAME "gpiochip0"
@@ -44,7 +90,7 @@ void turn_on_diode(struct gpiod_line *diode);
 void turn_off_diode(struct gpiod_line *diode);
 int is_switch_pressed(struct gpiod_line *sw);
 void unregister_board(struct board *b);
-void wait_for_switch_then_get_time_pressed(struct gpiod_line *line, struct timespec *time);
+int wait_for_switch_then_get_time_pressed(struct gpiod_line *line, struct timespec *time);
 void clear_line_buffer(struct gpiod_line *line);
 void clear_line_buffer_bulk(struct gpiod_line_bulk *line_bulk);
 int wait_for_switches_then_get_line_and_time_pressed(struct gpiod_line_bulk *line_bulk, struct timespec *time, struct gpiod_line **pline, struct timespec *timeout);
