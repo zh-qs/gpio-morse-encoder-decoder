@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <time.h>
 
+#define NULL (void*)0
+
 int get_morse_table_index(char c)
 {
     if (c >= ' ' && c <= 'Z') return 1+c-' ';
@@ -41,14 +43,23 @@ void send_morse_code(struct board *b, char *code)
     }
 }
 
+// {dot_time (nie NULL)/NULL}
 // w trybie nowe słowo czekamy bez końca na SW1 lub STOP
-// w trybie nowy znak czekamy 4 kropki na SW1 lub STOP, jeśli nie, to nowe słowo
-// po wyklikaniu kodu czekamy 3 kropki i wtedy zwracamy znaleziony znak
-char morse_getchar_delay(struct board *b, enum read_status *status, struct timespec *dot_time)
+// w trybie nowy znak czekamy 4 kropki/bez końca na SW1 lub STOP, jeśli nie/SW2, to nowe słowo
+// po wyklikaniu kodu czekamy 3 kropki/na SW2 i wtedy zwracamy znaleziony znak
+char morse_getchar_base(struct board *b, enum read_status *status, struct timespec *dot_time, struct gpiod_line_bulk *switches)
 {
     struct timespec three_dot_time, four_dot_time, switch_time;
-    multiply_time(3, dot_time, &three_dot_time);
-    multiply_time(4, dot_time, &four_dot_time);
+    struct timespec *pthree_dot_time, *pfour_dot_time;
+    if (dot_time == NULL)
+    {   
+        pthree_dot_time = pfour_dot_time = NULL;
+    }
+    else
+    {
+        multiply_time(3, dot_time, pthree_dot_time = &three_dot_time);
+        multiply_time(4, dot_time, pfour_dot_time = &four_dot_time);
+    }
     struct gpiod_line *line;
     struct morse_search_tree *node = &morse_tree;
     int res;
@@ -56,8 +67,8 @@ char morse_getchar_delay(struct board *b, enum read_status *status, struct times
     {
         case NEW_CHAR:
             // czekaj 4 kropki na SW1 lub STOP
-            res = wait_for_switches_then_get_line_and_time_pressed(b->switch13, &switch_time, &line, &four_dot_time);
-            if (res == 0) // timeout
+            res = wait_for_switches_then_get_line_and_time_pressed(switches, &switch_time, &line, pfour_dot_time);
+            if (res == 0 || line == b->switch2) // timeout or SW2
             {
                 *status = NEW_WORD;
                 turn_on_diode(b->diode2_yellow);
@@ -68,7 +79,7 @@ char morse_getchar_delay(struct board *b, enum read_status *status, struct times
             break;
         case NEW_WORD:
             // czekaj bez końca na SW1 lub STOP
-            res = wait_for_switches_then_get_line_and_time_pressed(b->switch13, &switch_time, &line, NULL);
+            res = wait_for_switches_then_get_line_and_time_pressed(switches, &switch_time, &line, NULL);
             turn_off_diode(b->diode3_green);
             turn_off_diode(b->diode2_yellow);
             break;
@@ -78,7 +89,7 @@ char morse_getchar_delay(struct board *b, enum read_status *status, struct times
 
     while (true)
     {
-        if (res == 0) // timeout
+        if (res == 0 || line == b->switch2) // timeout or SW2
         {
             *status = NEW_CHAR;
             turn_on_diode(b->diode3_green);
@@ -102,8 +113,75 @@ char morse_getchar_delay(struct board *b, enum read_status *status, struct times
         }
 
         // czekaj 3 kropki na SW1 lub STOP
-        res = wait_for_switches_then_get_line_and_time_pressed(b->switch13, &switch_time, &line, &three_dot_time);
+        res = wait_for_switches_then_get_line_and_time_pressed(switches, &switch_time, &line, pthree_dot_time);
     }
+}
+
+// w trybie nowe słowo czekamy bez końca na SW1 lub STOP
+// w trybie nowy znak czekamy 4 kropki na SW1 lub STOP, jeśli nie, to nowe słowo
+// po wyklikaniu kodu czekamy 3 kropki i wtedy zwracamy znaleziony znak
+char morse_getchar_delay(struct board *b, enum read_status *status, struct timespec *dot_time)
+{
+// ORYGINALNY ALGORYTM
+//    struct timespec three_dot_time, four_dot_time, switch_time;
+//    multiply_time(3, dot_time, &three_dot_time);
+//    multiply_time(4, dot_time, &four_dot_time);
+//    struct gpiod_line *line;
+//    struct morse_search_tree *node = &morse_tree;
+//    int res;
+//    switch (*status)
+//    {
+//        case NEW_CHAR:
+//            // czekaj 4 kropki na SW1 lub STOP
+//            res = wait_for_switches_then_get_line_and_time_pressed(b->switch13, &switch_time, &line, &four_dot_time);
+//            if (res == 0) // timeout
+//            {
+//                *status = NEW_WORD;
+//                turn_on_diode(b->diode2_yellow);
+//                return ' ';
+//            }
+//            // tu trzeba przejść za pierwsze czekanie w NEW WORD
+//            turn_off_diode(b->diode3_green);
+//            break;
+//        case NEW_WORD:
+//            // czekaj bez końca na SW1 lub STOP
+//            res = wait_for_switches_then_get_line_and_time_pressed(b->switch13, &switch_time, &line, NULL);
+//            turn_off_diode(b->diode3_green);
+//            turn_off_diode(b->diode2_yellow);
+//            break;
+//        default:
+//            return '\0';
+//    }
+//
+//    while (true)
+//    {
+//        if (res == 0) // timeout
+//        {
+//            *status = NEW_CHAR;
+//            turn_on_diode(b->diode3_green);
+//            return node->found_char;
+//        }
+//        if (line == b->switch3) // STOP
+//        {
+//            *status = STOP;
+//            return node->found_char;
+//        }
+//        if (line == b->switch1)
+//        {
+//            if (time_greater(switch_time, three_dot_time)) // dash
+//            {
+//                node = node->dash;
+//            }
+//            else // dot
+//            {
+//                node = node->dot;
+//            }
+//        }
+//
+//        // czekaj 3 kropki na SW1 lub STOP
+//        res = wait_for_switches_then_get_line_and_time_pressed(b->switch13, &switch_time, &line, &three_dot_time);
+//    }
+    return morse_getchar_base(b, status, dot_time, b->switch13);
 }
 
 // w trybie nowe słowo czekamy bez końca na SW1 lub STOP
@@ -111,7 +189,7 @@ char morse_getchar_delay(struct board *b, enum read_status *status, struct times
 // po wyklikaniu kodu czekamy na SW2 i wtedy zwracamy znaleziony znak
 char morse_getchar_second_switch(struct board *b, enum read_status *status)
 {
-
+    return morse_getchar_base(b, status, NULL, b->switch123);
 }
 
 char morse_getchar(struct board *b, enum read_status *status, struct morse_getchar_options *options)
