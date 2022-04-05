@@ -66,18 +66,19 @@ char morse_getchar_base(struct board *b, enum read_status *status, struct timesp
     switch (*status)
     {
         case NEW_CHAR:
+            turn_on_diode(b->diode3_green);
             // czekaj 4 kropki na SW1 lub STOP
             res = wait_for_switches_then_get_line_and_time_pressed(switches, &switch_time, &line, pfour_dot_time);
             if (res == 0 || line == b->switch2) // timeout or SW2
             {
                 *status = NEW_WORD;
-                turn_on_diode(b->diode2_yellow);
                 return ' ';
             }
             // tu trzeba przejść za pierwsze czekanie w NEW WORD
             turn_off_diode(b->diode3_green);
             break;
         case NEW_WORD:
+            turn_on_diode(b->diode2_yellow);
             // czekaj bez końca na SW1 lub STOP
             res = wait_for_switches_then_get_line_and_time_pressed(switches, &switch_time, &line, NULL);
             turn_off_diode(b->diode3_green);
@@ -92,7 +93,6 @@ char morse_getchar_base(struct board *b, enum read_status *status, struct timesp
         if (res == 0 || line == b->switch2) // timeout or SW2
         {
             *status = NEW_CHAR;
-            turn_on_diode(b->diode3_green);
             return node->found_char;
         }
         if (line == b->switch3) // STOP
