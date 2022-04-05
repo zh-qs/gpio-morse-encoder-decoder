@@ -49,6 +49,7 @@ void decode_mode(struct board *b)
     calibrate(b, &(options.dot_time));
     printf("Nadawanie kodu: SW1, zakonczenie nadawania: SW3\n\n");
     enum read_status status = NEW_WORD;
+    //clear_line_buffer_bulk(b->switch123);
     while (status != STOP)
     {
         printf("%c", morse_getchar(b, &status, &options));
