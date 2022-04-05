@@ -17,7 +17,7 @@ enum read_status
 
 enum recognition_method 
 {
-    DELAY, // new char -> 3 dots delay, new word -> 7 dots delay
+    DELAY = 1, // new char -> 3 dots delay, new word -> 7 dots delay
     SECOND_SWITCH // new char -> 1, new word -> 2 SW2 clicks
 };
 
