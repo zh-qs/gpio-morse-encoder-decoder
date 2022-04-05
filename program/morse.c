@@ -25,6 +25,11 @@ void send_string(struct board *b, const char *str)
     turn_off_diode(b->diode1_red);
 }
 
+void send_char(struct board *b, char c)
+{
+    send_morse_code(b, morse_codes[get_morse_table_index(c)]);
+} 
+
 void send_morse_code(struct board *b, char *code)
 {
     int i=0;
