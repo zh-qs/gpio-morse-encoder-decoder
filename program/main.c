@@ -26,12 +26,21 @@ enum mode get_mode()
 
 void encode_mode(struct board *b)
 {
-    char str[MAX_STRING];
+    //char str[MAX_STRING];
+    char c;
     printf("Wpisz tutaj ciag znakow, ktory ma byc zakodowany, i nacisnij ENTER:\n");
-    scanf(SCANF_PATTERN, str);
+    //scanf(SCANF_PATTERN, str);
+    scanf(" %c", &c);
     printf("Nadawanie...");
     fflush(stdout);
-    send_string(b, str);
+    turn_on_diode(b->diode4_red);
+    while (c!='\n')
+    {
+        send_char(b, c);
+        scanf("%c", &c);
+    } 
+    //send_string(b, str);
+    turn_off_diode(b->diode4_red);
     printf("OK\n");
 }
 
