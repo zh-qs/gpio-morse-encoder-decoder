@@ -1,7 +1,6 @@
 #include "morse.h"
 #include "boardctl.h"
 #include <stdio.h>
-#include <stdlib.h>
 
 #define STR(s) #s
 #define XSTR(s) STR(s)
@@ -30,12 +29,33 @@ void encode_mode(struct board *b)
     char str[MAX_STRING];
     printf("Wpisz tutaj ciag znakow, ktory ma byc zakodowany, i nacisnij ENTER:\n");
     scanf(SCANF_PATTERN, str);
+    printf("Nadawanie...");
+    fflush(stdout);
     send_string(b, str);
+    printf("OK\n");
 }
 
 void decode_mode(struct board *b)
 {
-    printf("Wybierz tryb wpisywania kodu Morse'a:\n");
+    int m=0;
+    while (m < 1 || m > 2)
+    {
+        printf("Wybierz tryb dzielenia znaków i wyrazów w kodzie Morse'a:\n 1. 3- i 7-kropkowa przerwa\n 2. 1 i 2 nacisniecia SW2\n");
+        scanf("%d", &m);
+    }
+    struct morse_getchar_options options;
+    options.method = m;
+    printf("Teraz skalibrujemy tempo nadawania pojedynczej kropki.\n");
+    calibrate(b, &(options.dot_time));
+    printf("Nadawanie kodu: SW1, zakonczenie nadawania: SW3\n\n");
+    enum read_status status = NEW_WORD;
+    while (status != STOP)
+    {
+        printf("%c", morse_getchar(b, &status, &options));
+        fflush(stdout);
+    }
+    printf("\nZakonczono odbieranie kodu.\n");
+        
 }
 
 int main() 
