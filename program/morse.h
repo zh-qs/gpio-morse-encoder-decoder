@@ -28,6 +28,7 @@ struct morse_getchar_options
 };
 
 void send_string(struct board *b, const char *str);
+void send_char(struct board *b, char c);
 char morse_getchar(struct board *b, enum read_status *status, struct morse_getchar_options *options);
 void calibrate(struct board *b, struct timespec *dot_time);
 
