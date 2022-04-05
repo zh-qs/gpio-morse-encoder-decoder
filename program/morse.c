@@ -206,6 +206,7 @@ void calibrate(struct board *b, struct timespec *dot_time)
     dot_time->tv_sec = 0;
     printf("Wciśnij przycisk SW1 %d razy, aby ustalić czas trwania pojedynczej kropki:\n", N_CALIBRATION);
     struct timespec ts;
+    //clear_line_buffer(b->switch1);
     for (int i=0;i<N_CALIBRATION;)
     {
         if (wait_for_switch_then_get_time_pressed(b->switch1, &ts) == 1)
