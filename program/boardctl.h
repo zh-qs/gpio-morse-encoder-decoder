@@ -1,6 +1,13 @@
 #ifndef BOARDCTL_H
 #define BOARDCTL_H
 
+#include <stdio.h>
+
+#define STR(s) #s
+#define XSTR(s) STR(s)
+
+#define THROW_ON_ERROR(f) ({ int v=(f); if (-1==v) { perror(__FILE__ ":" XSTR(__LINE__)); exit(EXIT_FAILURE); } v; })
+
 //#define WITH_GPIO
 
 #ifdef WITH_GPIO
