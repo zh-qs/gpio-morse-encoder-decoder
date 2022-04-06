@@ -2,6 +2,7 @@
 #define BOARDCTL_H
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #define STR(s) #s
 #define XSTR(s) STR(s)
