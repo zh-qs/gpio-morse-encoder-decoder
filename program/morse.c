@@ -209,65 +209,6 @@ char morse_getchar_base(struct board *b, enum read_status *status, struct timesp
 // po wyklikaniu kodu czekamy 3 kropki i wtedy zwracamy znaleziony znak
 char morse_getchar_delay(struct board *b, enum read_status *status, struct timespec *dot_time)
 {
-// ORYGINALNY ALGORYTM
-//    struct timespec three_dot_time, four_dot_time, switch_time;
-//    multiply_time(3, dot_time, &three_dot_time);
-//    multiply_time(4, dot_time, &four_dot_time);
-//    struct gpiod_line *line;
-//    struct morse_search_tree *node = &morse_tree;
-//    int res;
-//    switch (*status)
-//    {
-//        case NEW_CHAR:
-//            // czekaj 4 kropki na SW1 lub STOP
-//            res = wait_for_switches_then_get_line_and_time_pressed(b->switch13, &switch_time, &line, &four_dot_time);
-//            if (res == 0) // timeout
-//            {
-//                *status = NEW_WORD;
-//                turn_on_diode(b->diode2_yellow);
-//                return ' ';
-//            }
-//            // tu trzeba przejść za pierwsze czekanie w NEW WORD
-//            turn_off_diode(b->diode3_green);
-//            break;
-//        case NEW_WORD:
-//            // czekaj bez końca na SW1 lub STOP
-//            res = wait_for_switches_then_get_line_and_time_pressed(b->switch13, &switch_time, &line, NULL);
-//            turn_off_diode(b->diode3_green);
-//            turn_off_diode(b->diode2_yellow);
-//            break;
-//        default:
-//            return '\0';
-//    }
-//
-//    while (true)
-//    {
-//        if (res == 0) // timeout
-//        {
-//            *status = NEW_CHAR;
-//            turn_on_diode(b->diode3_green);
-//            return node->found_char;
-//        }
-//        if (line == b->switch3) // STOP
-//        {
-//            *status = STOP;
-//            return node->found_char;
-//        }
-//        if (line == b->switch1)
-//        {
-//            if (time_greater(switch_time, three_dot_time)) // dash
-//            {
-//                node = node->dash;
-//            }
-//            else // dot
-//            {
-//                node = node->dot;
-//            }
-//        }
-//
-//        // czekaj 3 kropki na SW1 lub STOP
-//        res = wait_for_switches_then_get_line_and_time_pressed(b->switch13, &switch_time, &line, &three_dot_time);
-//    }
     return morse_getchar_base(b, status, dot_time, b->switch13, TRUE);
 }
 
@@ -284,7 +225,6 @@ char morse_getchar(struct board *b, enum read_status *status, struct morse_getch
     if (options->method == DELAY) return morse_getchar_delay(b, status, &(options->dot_time));
     else return morse_getchar_second_switch(b, status, &(options->dot_time));
 }
-
 
 
 void calibrate(struct board *b, struct timespec *dot_time)

@@ -1,7 +1,0 @@
-CC=gcc
-CFLAGS=-Wall
-OBJS := main.o boardctl.o time_operations.o morse.o morse_search_tree.o
-morse: $(OBJS)
-	$(CC) -o morse $(CFLAGS) $(LDFLAGS) $(OBJS)
-$(OBJS) : %.o : %.c
-	$(CC) -c $(CFLAGS) $< -o $@
