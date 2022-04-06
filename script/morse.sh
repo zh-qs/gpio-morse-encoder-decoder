@@ -113,9 +113,11 @@ mainmenu () {
     elif [ "$modeselect" = "2" ]; then
         decode
     elif [ "$modeselect" = "3" ]; then
+        unregisterboard
         exit
     fi
     mainmenu
 }
 
+registerboard
 mainmenu
