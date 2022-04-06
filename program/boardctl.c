@@ -8,41 +8,41 @@
 void register_board(struct board *b)
 {
 #ifdef WITH_GPIO
-    b->chip = gpiod_chip_open_by_name(CHIPNAME);
+    b->chip = THROW_ON_NULL(gpiod_chip_open_by_name(CHIPNAME));
 
-    b->diode1_red = gpiod_chip_get_line(b->chip, LINED1);
-    b->diode2_yellow = gpiod_chip_get_line(b->chip, LINED2);
-    b->diode3_green = gpiod_chip_get_line(b->chip, LINED3);
-    b->diode4_blue = gpiod_chip_get_line(b->chip, LINED4);
+    b->diode1_red = THROW_ON_NULL(gpiod_chip_get_line(b->chip, LINED1));
+    b->diode2_yellow = THROW_ON_NULL(gpiod_chip_get_line(b->chip, LINED2));
+    b->diode3_green = THROW_ON_NULL(gpiod_chip_get_line(b->chip, LINED3));
+    b->diode4_blue = THROW_ON_NULL(gpiod_chip_get_line(b->chip, LINED4));
 
-    gpiod_line_request_output(b->diode1_red, CONSUMER, 0);
-    gpiod_line_request_output(b->diode2_yellow, CONSUMER, 0);
-    gpiod_line_request_output(b->diode3_green, CONSUMER, 0);
-    gpiod_line_request_output(b->diode4_blue, CONSUMER, 0);
+    THROW_ON_ERROR(gpiod_line_request_output(b->diode1_red, CONSUMER, 0));
+    THROW_ON_ERROR(gpiod_line_request_output(b->diode2_yellow, CONSUMER, 0));
+    THROW_ON_ERROR(gpiod_line_request_output(b->diode3_green, CONSUMER, 0));
+    THROW_ON_ERROR(gpiod_line_request_output(b->diode4_blue, CONSUMER, 0));
 
-    b->switch1 = gpiod_chip_get_line(b->chip, LINESW1);
-    b->switch2 = gpiod_chip_get_line(b->chip, LINESW2);
-    b->switch3 = gpiod_chip_get_line(b->chip, LINESW3);
-    b->switch4 = gpiod_chip_get_line(b->chip, LINESW4);
+    b->switch1 = THROW_ON_NULL(gpiod_chip_get_line(b->chip, LINESW1));
+    b->switch2 = THROW_ON_NULL(gpiod_chip_get_line(b->chip, LINESW2));
+    b->switch3 = THROW_ON_NULL(gpiod_chip_get_line(b->chip, LINESW3));
+    b->switch4 = THROW_ON_NULL(gpiod_chip_get_line(b->chip, LINESW4));
 
     // czy musimy requestować input, zanim requestujemy eventy?
-    gpiod_line_request_input(b->switch1, CONSUMER);
-    gpiod_line_request_input(b->switch2, CONSUMER);
-    gpiod_line_request_input(b->switch3, CONSUMER);
+    //THROW_ON_ERROR(gpiod_line_request_input(b->switch1, CONSUMER));
+    //THROW_ON_ERROR(gpiod_line_request_input(b->switch2, CONSUMER));
+    //THROW_ON_ERROR(gpiod_line_request_input(b->switch3, CONSUMER));
     // gpiod_line_request_input(b->switch4, CONSUMER);
-    gpiod_line_request_both_edges_events(b->switch1, CONSUMER);
-    gpiod_line_request_both_edges_events(b->switch2, CONSUMER);
-    gpiod_line_request_both_edges_events(b->switch3, CONSUMER);
+    THROW_ON_ERROR(gpiod_line_request_both_edges_events(b->switch1, CONSUMER));
+    THROW_ON_ERROR(gpiod_line_request_both_edges_events(b->switch2, CONSUMER));
+    THROW_ON_ERROR(gpiod_line_request_both_edges_events(b->switch3, CONSUMER));
     //gpiod_line_request_both_edges_events(b->switch4, CONSUMER);
 
-    b->switch13 = gpiod_line_bulk_new(2);
-    gpiod_line_bulk_add_line(b->switch13, b->switch1);
-    gpiod_line_bulk_add_line(b->switch13, b->switch3);
+    b->switch13 = THROW_ON_NULL(gpiod_line_bulk_new(2));
+    THROW_ON_ERROR(gpiod_line_bulk_add_line(b->switch13, b->switch1));
+    THROW_ON_ERROR(gpiod_line_bulk_add_line(b->switch13, b->switch3));
 
-    b->switch123 = gpiod_line_bulk_new(3);
-    gpiod_line_bulk_add_line(b->switch13, b->switch1);
-    gpiod_line_bulk_add_line(b->switch13, b->switch2);
-    gpiod_line_bulk_add_line(b->switch13, b->switch3);
+    b->switch123 = THROW_ON_NULL(gpiod_line_bulk_new(3));
+    THROW_ON_ERROR(gpiod_line_bulk_add_line(b->switch13, b->switch1));
+    THROW_ON_ERROR(gpiod_line_bulk_add_line(b->switch13, b->switch2));
+    THROW_ON_ERROR(gpiod_line_bulk_add_line(b->switch13, b->switch3));
 #else
     b->switch1 = SW1;
     b->switch2 = SW2;
@@ -55,7 +55,7 @@ void register_board(struct board *b)
 void turn_on_diode(struct gpiod_line *diode)
 {
 #ifdef WITH_GPIO
-    gpiod_line_set_value(diode, HIGH);
+    THROW_ON_ERROR(gpiod_line_set_value(diode, HIGH));
 #else
     printf("(");
     fflush(stdout);
@@ -65,7 +65,7 @@ void turn_on_diode(struct gpiod_line *diode)
 void turn_off_diode(struct gpiod_line *diode)
 {
 #ifdef WITH_GPIO
-    gpiod_line_set_value(diode, LOW);
+    THROW_ON_ERROR(gpiod_line_set_value(diode, LOW));
 #else
     printf(")");
     fflush(stdout);
@@ -75,7 +75,7 @@ void turn_off_diode(struct gpiod_line *diode)
 int is_switch_pressed(struct gpiod_line *sw)
 {
 #ifdef WITH_GPIO
-    return !gpiod_line_get_value(sw);
+    return !THROW_ON_ERROR(gpiod_line_get_value(sw));
 #else
     return 0;
 #endif
@@ -106,14 +106,14 @@ int wait_for_switch_then_get_time_pressed(struct gpiod_line *line, struct timesp
 #ifdef WITH_GPIO
     struct gpiod_line_event event;
     struct timespec old_time;
-    gpiod_line_event_read(line, &event);
+    THROW_ON_ERROR(gpiod_line_event_read(line, &event));
     while (event->event_type != SWITCH_PRESSED)
     {
-        gpiod_line_event_read(line, &event);
+        THROW_ON_ERROR(gpiod_line_event_read(line, &event));
     }
     old_time = event.ts;
     
-    gpiod_line_event_read(line, &event);
+    THROW_ON_ERROR(gpiod_line_event_read(line, &event));
     if (event->event_type != SWITCH_RELEASED)
     {
         return -1; // pressed too fast to register
@@ -134,9 +134,9 @@ void clear_line_buffer(struct gpiod_line *line)
 #ifdef WITH_GPIO
     struct timespec timeout = {0,0};
     struct gpiod_line_event e;
-    while (gpiod_line_event_wait(line, &timeout))
+    while (THROW_ON_ERROR(gpiod_line_event_wait(line, &timeout)))
     {
-        gpiod_line_event_read(line, &e);
+        THROW_ON_ERROR(gpiod_line_event_read(line, &e));
     }
 #endif
 }
@@ -156,23 +156,23 @@ void clear_line_buffer_bulk(struct gpiod_line_bulk *line_bulk)
 int wait_for_switches_then_get_line_and_time_pressed(struct gpiod_line_bulk *line_bulk, struct timespec *time, struct gpiod_line **pline, struct timespec *timeout)
 {
 #ifdef WITH_GPIO
-    struct gpiod_line_bulk *event_bulk = gpiod_line_bulk_new(3);
+    struct gpiod_line_bulk *event_bulk = THROW_ON_ERROR(gpiod_line_bulk_new(3));
     struct gpiod_line_event event;
     struct gpiod_line *event_line;
     struct timespec old_time;
-    int ret = gpiod_line_event_wait_bulk(line_bulk, timeout, event_bulk);
+    int ret = THROW_ON_ERROR(gpiod_line_event_wait_bulk(line_bulk, timeout, event_bulk));
     if (ret == 0) return 0;
-    event_line = gpiod_line_bulk_get_line(event_bulk, 0);
-    gpiod_line_event_read(event_line, &event);
+    event_line = THROW_ON_NULL(gpiod_line_bulk_get_line(event_bulk, 0));
+    THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
     while (event->event_type != SWITCH_PRESSED)
     {
-        gpiod_line_event_wait_bulk(line_bulk, timeout, event_bulk);
-        event_line = gpiod_line_bulk_get_line(event_bulk, 0);
-        gpiod_line_event_read(event_line, &event);
+        THROW_ON_ERROR(gpiod_line_event_wait_bulk(line_bulk, timeout, event_bulk));
+        event_line = THROW_ON_NULLgpiod_line_bulk_get_line(event_bulk, 0));
+        THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
     }
     old_time = event.ts;
 
-    gpiod_line_event_read(event_line, &event);
+    THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
     if (event->event_type != SWITCH_RELEASED)
     {
         return -1; // pressed too fast to register
