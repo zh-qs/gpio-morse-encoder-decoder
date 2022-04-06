@@ -56,6 +56,8 @@ CODE_z=--..
 
 N_CALIBRATION=10
 
+# GPIO number = XXX (from /sys/class/gpio/gpiochipXXX) + number of pin 
+
 DIODE1=27
 DIODE2=23
 DIODE3=22
@@ -71,21 +73,20 @@ SW4=25
 SWITCHES="$SW1 $SW2 $SW3 $SW4"
 
 registerboard () {
-    for i in $DIODES $SWITCHES
-        do
-            echo $i > /sys/class/gpio/export
-        done
+
     
-    for i in $DIODES
-        do
-            echo low > /sys/class/gpio/gpio$i/direction
-        done
+    for i in $DIODES 
+    do
+        echo $i > /sys/class/gpio/export
+        echo low > /sys/class/gpio/gpio$i/direction
+    done
     
-    for i in $SWITCHES
-        do
-            echo in > /sys/class/gpio/gpio$i/direction
-            echo both > /sys/class/gpio/gpio$i/edge
-        done
+    for i in $SWITCHES 
+    do
+        echo $i > /sys/class/gpio/export
+        echo in > /sys/class/gpio/gpio$i/direction
+        echo both > /sys/class/gpio/gpio$i/edge
+    done
 }
 
 encode () {
@@ -93,12 +94,14 @@ encode () {
     read -p "" str
 
     echo 1 > /sys/class/gpio/gpio$DIODE1/value
-    for (( i=0; i<${#str}; i++ )); do
+    i=0
+    while [ "$i" -le "${#str}" ]; do
         if [ ${str:$i:1} = " " ]; then
             sleep .3
         else
             eval "CODE=\${CODE_${str:$i:1}}"
-            for (( j=0; j<${#CODE}; j++ )); do
+            j=0
+            while [ "$j" -le "${#CODE}" ]; do
                 echo 1 > /sys/class/gpio/gpio$DIODE4/value
                 if [ ${CODE:$j:1} = "." ]; then
                     sleep .3
@@ -110,13 +113,14 @@ encode () {
             done
         fi
         sleep .9
+        i=$(( i + 1 ))
     done
     echo 0 > /sys/class/gpio/gpio$DIODE1/value
 }
 
-waitforswitch_andgettime () {
-    if ino
-}
+#waitforswitch_andgettime () {
+#    
+#}
 
 calibrate () {
     echo Teraz skalibrujemy tempo nadawania pojedynczej kropki.
