@@ -27,19 +27,48 @@ CODE_X=-..-
 CODE_Y=-.--
 CODE_Z=--..
 
+CODE_a=.-
+CODE_b=-...
+CODE_c=-.-.
+CODE_d=-..
+CODE_e=.
+CODE_f=..-.
+CODE_g=--.
+CODE_h=....
+CODE_i=..
+CODE_j=.---
+CODE_k=-.-
+CODE_l=.-..
+CODE_m=--
+CODE_n=-.
+CODE_o=---
+CODE_p=.--
+CODE_q=--.-
+CODE_r=.-.
+CODE_s=...
+CODE_t=-
+CODE_u=..-
+CODE_v=...-
+CODE_w=.--
+CODE_x=-..-
+CODE_y=-.--
+CODE_z=--..
+
+N_CALIBRATION=10
+
 DIODE1=27
 DIODE2=23
 DIODE3=22
 DIODE4=24
 
-DIODES=$DIODE1 $DIODE2 $DIODE3 $DIODE4
+DIODES="$DIODE1 $DIODE2 $DIODE3 $DIODE4"
 
 SW1=18
 SW2=17
 SW3=10
 SW4=25
 
-SWITCHES=$SW1 $SW2 $SW3 $SW4
+SWITCHES="$SW1 $SW2 $SW3 $SW4"
 
 registerboard () {
     for i in $DIODES $SWITCHES
@@ -65,15 +94,15 @@ encode () {
 
     echo 1 > /sys/class/gpio/gpio$DIODE1/value
     for (( i=0; i<${#str}; i++ )); do
-        if [ ${str:$i:1} = " " ] then
+        if [ ${str:$i:1} = " " ]; then
             sleep .3
         else
-            CODE=CODE_${str:$i:1}
-            for (( j=0; j<${#CODE}; j++ )) do
+            eval "CODE=\${CODE_${str:$i:1}}"
+            for (( j=0; j<${#CODE}; j++ )); do
                 echo 1 > /sys/class/gpio/gpio$DIODE4/value
-                if [ ${CODE:$j:1} = "." ] then
+                if [ ${CODE:$j:1} = "." ]; then
                     sleep .3
-                elif [ ${CODE:$j:1} = "-" ] then
+                elif [ ${CODE:$j:1} = "-" ]; then
                     sleep .9
                 fi
                 echo 0 > /sys/class/gpio/gpio$DIODE4/value
@@ -85,7 +114,13 @@ encode () {
     echo 0 > /sys/class/gpio/gpio$DIODE1/value
 }
 
+waitforswitch_andgettime () {
+    if ino
+}
+
 calibrate () {
+    echo Teraz skalibrujemy tempo nadawania pojedynczej kropki.
+    echo Wcisnij przycisk SW1 $N_CALIBRATION razy, aby ustalic czas trwania pojedynczej kropki:
     # TODO
 }
 
@@ -107,7 +142,7 @@ mainmenu () {
     echo  1. Nadawanie
     echo  2. Odbieranie
     echo  3. Wyjscie
-    read -n 1 -p "" modeselect
+    read -p "" modeselect
     if [ "$modeselect" = "1" ]; then
         encode
     elif [ "$modeselect" = "2" ]; then
