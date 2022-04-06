@@ -10,7 +10,7 @@
 #define THROW_ON_ERROR(f) ({ int v=(f); if (-1==v) { perror(__FILE__ ":" XSTR(__LINE__)); exit(EXIT_FAILURE); } v; })
 #define THROW_ON_NULL(f) ({ void *v=(f); if (NULL==v) { perror(__FILE__ ":" XSTR(__LINE__)); exit(EXIT_FAILURE); } v; })
 
-//#define WITH_GPIO
+#define WITH_GPIO
 
 #ifdef WITH_GPIO
 
