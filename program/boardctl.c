@@ -101,11 +101,44 @@ void unregister_board(struct board *b)
 #endif
 }
 
+#ifdef WITH_GPIO
+const struct timespec max_bounce_time = {0, 5000000}; // 5ms
+
+int debounce_wait(struct gpiod_line *line, const struct timespec *timeout)
+{
+    int res = gpiod_line_event_wait(line, timeout);
+    int pres = res;
+    if (res <= 0) return res;
+    while ((res = gpiod_line_event_wait(line, max_bounce_time)) > 0)
+    {
+        if (res == -1) return -1;
+        pres = res;
+    }
+    return pres;
+}
+
+int debounce_wait_bulk(struct gpiod_line_bulk *lines, const struct timespec *timeout, struct gpiod_line_bulk *event_bulk)
+{
+    int res = gpiod_line_event_wait_bulk(lines, timeout, event_bulk);
+    int pres = res;
+    if (res <= 0) return res;
+    while ((res = gpiod_line_event_wait_bulk(lines, max_bounce_time, event_bulk)) > 0)
+    {
+        if (res == -1) return -1;
+        pres = res;
+    }
+    return pres;
+}
+
+// TODO: add debounce
+#endif
+
 int wait_for_switch_then_get_time_pressed(struct gpiod_line *line, struct timespec *time)
 {
 #ifdef WITH_GPIO
     struct gpiod_line_event event;
     struct timespec old_time;
+    THROW_ON_ERROR(debounce_wait(line, NULL));
     THROW_ON_ERROR(gpiod_line_event_read(line, &event));
     while (event->event_type != SWITCH_PRESSED)
     {
