@@ -209,7 +209,7 @@ char morse_getchar_base(struct board *b, enum read_status *status, struct timesp
 // po wyklikaniu kodu czekamy 3 kropki i wtedy zwracamy znaleziony znak
 char morse_getchar_delay(struct board *b, enum read_status *status, struct timespec *dot_time)
 {
-    return morse_getchar_base(b, status, dot_time, b->switch13, TRUE);
+    return morse_getchar_base(b, status, dot_time, &b->switch13, TRUE);
 }
 
 // w trybie nowe słowo czekamy bez końca na SW1 lub STOP
@@ -217,7 +217,7 @@ char morse_getchar_delay(struct board *b, enum read_status *status, struct times
 // po wyklikaniu kodu czekamy na SW2 i wtedy zwracamy znaleziony znak
 char morse_getchar_second_switch(struct board *b, enum read_status *status, struct timespec *dot_time)
 {
-    return morse_getchar_base(b, status, dot_time, b->switch123, FALSE);
+    return morse_getchar_base(b, status, dot_time, &b->switch123, FALSE);
 }
 
 char morse_getchar(struct board *b, enum read_status *status, struct morse_getchar_options *options)
