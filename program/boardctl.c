@@ -35,14 +35,14 @@ void register_board(struct board *b)
     THROW_ON_ERROR(gpiod_line_request_both_edges_events(b->switch3, CONSUMER));
     //gpiod_line_request_both_edges_events(b->switch4, CONSUMER);
 
-    b->switch13 = GPIOD_LINE_BULK_INITIALIZER;
+    gpiod_line_bulk_init(&b->switch13);
     gpiod_line_bulk_add(&b->switch13, b->switch1);
     gpiod_line_bulk_add(&b->switch13, b->switch3);
 
-    b->switch123 = GPIOD_LINE_BULK_INITIALIZER;
-    gpiod_line_bulk_add(&b->switch13, b->switch1);
-    gpiod_line_bulk_add(&b->switch13, b->switch2);
-    gpiod_line_bulk_add(&b->switch13, b->switch3);
+    gpiod_line_bulk_init(&b->switch123);
+    gpiod_line_bulk_add(&b->switch123, b->switch1);
+    gpiod_line_bulk_add(&b->switch123, b->switch2);
+    gpiod_line_bulk_add(&b->switch123, b->switch3);
 #else
     b->switch1 = SW1;
     b->switch2 = SW2;
@@ -188,7 +188,7 @@ int wait_for_switches_then_get_line_and_time_pressed(struct gpiod_line_bulk *lin
     struct timespec old_time;
     int ret = THROW_ON_ERROR(gpiod_line_event_wait_bulk(line_bulk, timeout, &event_bulk));
     if (ret == 0) return 0;
-    event_line = THROW_ON_NULL(gpiod_line_bulk_get_line(event_bulk, 0));
+    event_line = THROW_ON_NULL(gpiod_line_bulk_get_line(&event_bulk, 0));
     THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
     while (event.event_type != SWITCH_PRESSED)
     {
