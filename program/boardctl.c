@@ -25,9 +25,10 @@ void register_board(struct board *b)
     b->switch3 = gpiod_chip_get_line(b->chip, LINESW3);
     b->switch4 = gpiod_chip_get_line(b->chip, LINESW4);
 
-    // gpiod_line_request_input(b->switch1, CONSUMER);
-    // gpiod_line_request_input(b->switch2, CONSUMER);
-    // gpiod_line_request_input(b->switch3, CONSUMER);
+    // czy musimy requestować input, zanim requestujemy eventy?
+    gpiod_line_request_input(b->switch1, CONSUMER);
+    gpiod_line_request_input(b->switch2, CONSUMER);
+    gpiod_line_request_input(b->switch3, CONSUMER);
     // gpiod_line_request_input(b->switch4, CONSUMER);
     gpiod_line_request_both_edges_events(b->switch1, CONSUMER);
     gpiod_line_request_both_edges_events(b->switch2, CONSUMER);
