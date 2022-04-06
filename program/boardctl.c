@@ -126,8 +126,6 @@ int debounce_wait_bulk(struct gpiod_line_bulk *lines, const struct timespec *tim
     }
     return pres;
 }
-
-// TODO: add debounce
 #endif
 
 int wait_for_switch_then_get_time_pressed(struct gpiod_line *line, struct timespec *time)
@@ -135,14 +133,16 @@ int wait_for_switch_then_get_time_pressed(struct gpiod_line *line, struct timesp
 #ifdef WITH_GPIO
     struct gpiod_line_event event;
     struct timespec old_time;
-    //THROW_ON_ERROR(debounce_wait(line, NULL));
+    THROW_ON_ERROR(debounce_wait(line, NULL));
     THROW_ON_ERROR(gpiod_line_event_read(line, &event));
     while (event.event_type != SWITCH_PRESSED)
     {
+        THROW_ON_ERROR(debounce_wait(line, NULL));
         THROW_ON_ERROR(gpiod_line_event_read(line, &event));
     }
     old_time = event.ts;
-    
+
+    THROW_ON_ERROR(debounce_wait(line, NULL));
     THROW_ON_ERROR(gpiod_line_event_read(line, &event));
     if (event.event_type != SWITCH_RELEASED)
     {
@@ -186,18 +186,19 @@ int wait_for_switches_then_get_line_and_time_pressed(struct gpiod_line_bulk *lin
     struct gpiod_line_event event;
     struct gpiod_line *event_line;
     struct timespec old_time;
-    int ret = THROW_ON_ERROR(gpiod_line_event_wait_bulk(line_bulk, timeout, &event_bulk));
+    int ret = THROW_ON_ERROR(debounce_wait_bulk(line_bulk, timeout, &event_bulk));
     if (ret == 0) return 0;
     event_line = THROW_ON_NULL(gpiod_line_bulk_get_line(&event_bulk, 0));
     THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
     while (event.event_type != SWITCH_PRESSED)
     {
-        THROW_ON_ERROR(gpiod_line_event_wait_bulk(line_bulk, timeout, &event_bulk));
+        THROW_ON_ERROR(debounce_wait_bulk(line_bulk, timeout, &event_bulk));
         event_line = THROW_ON_NULL(gpiod_line_bulk_get_line(&event_bulk, 0));
         THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
     }
     old_time = event.ts;
 
+    THROW_ON_ERROR(debounce_wait(event_line, NULL));
     THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
     if (event.event_type != SWITCH_RELEASED)
     {
