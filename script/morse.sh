@@ -86,11 +86,12 @@ encode () {
 }
 
 calibrate () {
-
+    # TODO
 }
 
 decode () {
     calibrate
+    # TODO
 }
 
 unregisterboard () {
