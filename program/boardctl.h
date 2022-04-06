@@ -89,8 +89,8 @@ struct board
                       *switch2,
                       *switch3,
                       *switch4;
-    struct gpiod_line_bulk *switch13,
-                           *switch123;
+    struct gpiod_line_bulk switch13,
+                           switch123;
 
 };
 

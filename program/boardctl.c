@@ -35,14 +35,14 @@ void register_board(struct board *b)
     THROW_ON_ERROR(gpiod_line_request_both_edges_events(b->switch3, CONSUMER));
     //gpiod_line_request_both_edges_events(b->switch4, CONSUMER);
 
-    b->switch13 = THROW_ON_NULL(gpiod_line_bulk_new(2));
-    THROW_ON_ERROR(gpiod_line_bulk_add_line(b->switch13, b->switch1));
-    THROW_ON_ERROR(gpiod_line_bulk_add_line(b->switch13, b->switch3));
+    b->switch13 = GPIOD_LINE_BULK_INITIALIZER;
+    gpiod_line_bulk_add(&b->switch13, b->switch1);
+    gpiod_line_bulk_add(&b->switch13, b->switch3);
 
-    b->switch123 = THROW_ON_NULL(gpiod_line_bulk_new(3));
-    THROW_ON_ERROR(gpiod_line_bulk_add_line(b->switch13, b->switch1));
-    THROW_ON_ERROR(gpiod_line_bulk_add_line(b->switch13, b->switch2));
-    THROW_ON_ERROR(gpiod_line_bulk_add_line(b->switch13, b->switch3));
+    b->switch123 = GPIOD_LINE_BULK_INITIALIZER;
+    gpiod_line_bulk_add(&b->switch13, b->switch1);
+    gpiod_line_bulk_add(&b->switch13, b->switch2);
+    gpiod_line_bulk_add(&b->switch13, b->switch3);
 #else
     b->switch1 = SW1;
     b->switch2 = SW2;
@@ -84,9 +84,6 @@ int is_switch_pressed(struct gpiod_line *sw)
 void unregister_board(struct board *b)
 {
 #ifdef WITH_GPIO
-    gpiod_line_bulk_free(b->switch13);
-    gpiod_line_bulk_free(b->switch123);
-
     gpiod_line_release(b->diode1_red);
     gpiod_line_release(b->diode2_yellow);
     gpiod_line_release(b->diode3_green);
@@ -109,7 +106,7 @@ int debounce_wait(struct gpiod_line *line, const struct timespec *timeout)
     int res = gpiod_line_event_wait(line, timeout);
     int pres = res;
     if (res <= 0) return res;
-    while ((res = gpiod_line_event_wait(line, max_bounce_time)) > 0)
+    while ((res = gpiod_line_event_wait(line, &max_bounce_time)) > 0)
     {
         if (res == -1) return -1;
         pres = res;
@@ -122,7 +119,7 @@ int debounce_wait_bulk(struct gpiod_line_bulk *lines, const struct timespec *tim
     int res = gpiod_line_event_wait_bulk(lines, timeout, event_bulk);
     int pres = res;
     if (res <= 0) return res;
-    while ((res = gpiod_line_event_wait_bulk(lines, max_bounce_time, event_bulk)) > 0)
+    while ((res = gpiod_line_event_wait_bulk(lines, &max_bounce_time, event_bulk)) > 0)
     {
         if (res == -1) return -1;
         pres = res;
@@ -138,20 +135,20 @@ int wait_for_switch_then_get_time_pressed(struct gpiod_line *line, struct timesp
 #ifdef WITH_GPIO
     struct gpiod_line_event event;
     struct timespec old_time;
-    THROW_ON_ERROR(debounce_wait(line, NULL));
+    //THROW_ON_ERROR(debounce_wait(line, NULL));
     THROW_ON_ERROR(gpiod_line_event_read(line, &event));
-    while (event->event_type != SWITCH_PRESSED)
+    while (event.event_type != SWITCH_PRESSED)
     {
         THROW_ON_ERROR(gpiod_line_event_read(line, &event));
     }
     old_time = event.ts;
     
     THROW_ON_ERROR(gpiod_line_event_read(line, &event));
-    if (event->event_type != SWITCH_RELEASED)
+    if (event.event_type != SWITCH_RELEASED)
     {
         return -1; // pressed too fast to register
     }
-    diff_timespec(&(event->ts), &old_time, time);
+    diff_timespec(&(event.ts), &old_time, time);
     return 1;
 #else
     char c;
@@ -174,15 +171,11 @@ void clear_line_buffer(struct gpiod_line *line)
 #endif
 }
 
-void clear_line_buffer_func(struct gpiod_line *line, void *buf)
-{
-    clear_line_buffer(line);
-}
-
 void clear_line_buffer_bulk(struct gpiod_line_bulk *line_bulk)
 {
 #ifdef WITH_GPIO
-    gpiod_line_bulk_foreach_line(line_bulk, clear_line_buffer_func, NULL);
+    struct gpiod_line *line, **pline;
+    gpiod_line_bulk_foreach_line(line_bulk, line, pline) clear_line_buffer(line);
 #endif
 }
 
@@ -197,7 +190,7 @@ int wait_for_switches_then_get_line_and_time_pressed(struct gpiod_line_bulk *lin
     if (ret == 0) return 0;
     event_line = THROW_ON_NULL(gpiod_line_bulk_get_line(event_bulk, 0));
     THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
-    while (event->event_type != SWITCH_PRESSED)
+    while (event.event_type != SWITCH_PRESSED)
     {
         THROW_ON_ERROR(gpiod_line_event_wait_bulk(line_bulk, timeout, event_bulk));
         event_line = THROW_ON_NULLgpiod_line_bulk_get_line(event_bulk, 0));
@@ -206,11 +199,11 @@ int wait_for_switches_then_get_line_and_time_pressed(struct gpiod_line_bulk *lin
     old_time = event.ts;
 
     THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
-    if (event->event_type != SWITCH_RELEASED)
+    if (event.event_type != SWITCH_RELEASED)
     {
         return -1; // pressed too fast to register
     }
-    diff_timespec(&(event->ts), &old_time, time);
+    diff_timespec(&(event.ts), &old_time, time);
 
     *pline = event_line;
 
