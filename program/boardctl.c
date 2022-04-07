@@ -104,11 +104,16 @@ const struct timespec max_bounce_time = {0, 5000000}; // 5ms
 int debounce_wait_read(struct gpiod_line *line, const struct timespec *timeout, struct gpiod_line_event *event)
 {
     int res = gpiod_line_event_wait(line, timeout);
+    printf("po 1 czekaniu\n");
     if (res <= 0) return res;
     if (gpiod_line_event_read(line, event) == -1) return -1;
     while ((res = gpiod_line_event_wait(line, &max_bounce_time)) > 0)
     {
         if (res == -1) return -1;
+
+        printf("a");
+        fflush(stdout);
+
         if (gpiod_line_event_read(line, event) == -1) return -1;
     }
     return 1;
