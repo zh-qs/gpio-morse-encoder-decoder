@@ -75,49 +75,53 @@ SW4=$(( GPIONUM + 25 ))
 SWITCHES="$SW1 $SW2 $SW3 $SW4"
 
 registerboard () {
-
+	for i in $DIODES $SWITCHES
+        do
+            echo $i > /sys/class/gpio/export
+        done
     
     for i in $DIODES 
-    do
-        echo $i > /sys/class/gpio/export
-        echo low > /sys/class/gpio/gpio$i/direction
-    done
+		do
+			echo low > /sys/class/gpio/gpio$i/direction
+		done
     
     for i in $SWITCHES 
-    do
-        echo $i > /sys/class/gpio/export
-        echo in > /sys/class/gpio/gpio$i/direction
-        echo both > /sys/class/gpio/gpio$i/edge
-    done
+		do
+			echo in > /sys/class/gpio/gpio$i/direction
+			echo both > /sys/class/gpio/gpio$i/edge
+		done
 }
 
 encode () {
     echo Wpisz ciag znakow, ktory ma byc zakodowany, i nacisnij ENTER:
     read -p "" str
 
+	echo Nadawanie...
     echo 1 > /sys/class/gpio/gpio$DIODE1/value
     i=0
     while [ "$i" -le "${#str}" ]; do
-        if [ ${str:$i:1} = " " ]; then
+        if [ "${str:$i:1}" = " " ]; then
             sleep .3
         else
             eval "CODE=\${CODE_${str:$i:1}}"
             j=0
             while [ "$j" -le "${#CODE}" ]; do
                 echo 1 > /sys/class/gpio/gpio$DIODE4/value
-                if [ ${CODE:$j:1} = "." ]; then
+                if [ "${CODE:$j:1}" = "." ]; then
                     sleep .3
-                elif [ ${CODE:$j:1} = "-" ]; then
+                elif [ "${CODE:$j:1}" = "-" ]; then
                     sleep .9
                 fi
                 echo 0 > /sys/class/gpio/gpio$DIODE4/value
                 sleep .3
+				j=$(( j + 1 ))
             done
         fi
         sleep .9
         i=$(( i + 1 ))
     done
     echo 0 > /sys/class/gpio/gpio$DIODE1/value
+	echo OK
 }
 
 #waitforswitch_andgettime () {
@@ -131,14 +135,15 @@ calibrate () {
 }
 
 decode () {
-    calibrate
+	echo Na razie nie dziala!
+    # calibrate
     # TODO
 }
 
 unregisterboard () {
     for i in $DIODES $SWITCHES
         do
-            echo i > /sys/class/gpio/unexport
+            echo $i > /sys/class/gpio/unexport
         done
 }
 
