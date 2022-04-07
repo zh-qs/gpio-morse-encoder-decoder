@@ -58,17 +58,19 @@ N_CALIBRATION=10
 
 # GPIO number = XXX (from /sys/class/gpio/gpiochipXXX) + number of pin 
 
-DIODE1=27
-DIODE2=23
-DIODE3=22
-DIODE4=24
+GPIONUM=`ls /sys/class/gpio | grep gpiochip | tr -d gpiochip`
+
+DIODE1=$(( GPIONUM + 27 ))
+DIODE2=$(( GPIONUM + 23 ))
+DIODE3=$(( GPIONUM + 22 ))
+DIODE4=$(( GPIONUM + 24 ))
 
 DIODES="$DIODE1 $DIODE2 $DIODE3 $DIODE4"
 
-SW1=18
-SW2=17
-SW3=10
-SW4=25
+SW1=$(( GPIONUM + 18 ))
+SW2=$(( GPIONUM + 17 ))
+SW3=$(( GPIONUM + 10 ))
+SW4=$(( GPIONUM + 25 ))
 
 SWITCHES="$SW1 $SW2 $SW3 $SW4"
 
