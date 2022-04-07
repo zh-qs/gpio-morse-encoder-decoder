@@ -101,30 +101,33 @@ void unregister_board(struct board *b)
 #ifdef WITH_GPIO
 const struct timespec max_bounce_time = {0, 5000000}; // 5ms
 
-int debounce_wait(struct gpiod_line *line, const struct timespec *timeout)
+int debounce_wait_read(struct gpiod_line *line, const struct timespec *timeout, struct gpiod_line_event *event)
 {
     int res = gpiod_line_event_wait(line, timeout);
-    int pres = res;
     if (res <= 0) return res;
+    if (gpiod_line_event_read(line, event) == -1) return -1;
     while ((res = gpiod_line_event_wait(line, &max_bounce_time)) > 0)
     {
         if (res == -1) return -1;
-        pres = res;
+        if (gpiod_line_event_read(line, event) == -1) return -1;
     }
-    return pres;
+    return 1;
 }
 
-int debounce_wait_bulk(struct gpiod_line_bulk *lines, const struct timespec *timeout, struct gpiod_line_bulk *event_bulk)
+int debounce_wait_read_bulk(struct gpiod_line_bulk *lines, const struct timespec *timeout, struct gpiod_line** line_read, struct gpiod_line_event *event)
 {
-    int res = gpiod_line_event_wait_bulk(lines, timeout, event_bulk);
-    int pres = res;
+    struct gpiod_line_bulk event_bulk = GPIOD_LINE_BULK_INITIALIZER;
+    int res = gpiod_line_event_wait_bulk(lines, timeout, &event_bulk);
     if (res <= 0) return res;
-    while ((res = gpiod_line_event_wait_bulk(lines, &max_bounce_time, event_bulk)) > 0)
+    *line_read = THROW_ON_NULL(gpiod_line_bulk_get_line(lines, 0));
+    if (gpiod_line_event_read(*line_read, event) == -1) return -1;
+    while ((res = gpiod_line_event_wait_bulk(lines, &max_bounce_time, &event_bulk)) > 0)
     {
         if (res == -1) return -1;
-        pres = res;
+        *line_read = THROW_ON_NULL(gpiod_line_bulk_get_line(lines, 0));
+        if (gpiod_line_event_read(*line_read, event) == -1) return -1;
     }
-    return pres;
+    return 1;
 }
 #endif
 
@@ -133,17 +136,17 @@ int wait_for_switch_then_get_time_pressed(struct gpiod_line *line, struct timesp
 #ifdef WITH_GPIO
     struct gpiod_line_event event;
     struct timespec old_time;
-    THROW_ON_ERROR(debounce_wait(line, NULL));
-    THROW_ON_ERROR(gpiod_line_event_read(line, &event));
+    THROW_ON_ERROR(debounce_wait_read(line, NULL, &event));
+    //THROW_ON_ERROR(gpiod_line_event_read(line, &event));
     while (event.event_type != SWITCH_PRESSED)
     {
-        THROW_ON_ERROR(debounce_wait(line, NULL));
-        THROW_ON_ERROR(gpiod_line_event_read(line, &event));
+        THROW_ON_ERROR(debounce_wait_read(line, NULL, &event));
+        //THROW_ON_ERROR(gpiod_line_event_read(line, &event));
     }
     old_time = event.ts;
 
-    THROW_ON_ERROR(debounce_wait(line, NULL));
-    THROW_ON_ERROR(gpiod_line_event_read(line, &event));
+    THROW_ON_ERROR(debounce_wait_read(line, NULL, &event));
+    //THROW_ON_ERROR(gpiod_line_event_read(line, &event));
     if (event.event_type != SWITCH_RELEASED)
     {
         return -1; // pressed too fast to register
@@ -182,24 +185,20 @@ void clear_line_buffer_bulk(struct gpiod_line_bulk *line_bulk)
 int wait_for_switches_then_get_line_and_time_pressed(struct gpiod_line_bulk *line_bulk, struct timespec *time, struct gpiod_line **pline, struct timespec *timeout)
 {
 #ifdef WITH_GPIO
-    struct gpiod_line_bulk event_bulk = GPIOD_LINE_BULK_INITIALIZER;
     struct gpiod_line_event event;
     struct gpiod_line *event_line;
     struct timespec old_time;
-    int ret = THROW_ON_ERROR(debounce_wait_bulk(line_bulk, timeout, &event_bulk));
+    int ret = THROW_ON_ERROR(debounce_wait_read_bulk(line_bulk, timeout, pline, &event));
     if (ret == 0) return 0;
-    event_line = THROW_ON_NULL(gpiod_line_bulk_get_line(&event_bulk, 0));
-    THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
     while (event.event_type != SWITCH_PRESSED)
     {
-        THROW_ON_ERROR(debounce_wait_bulk(line_bulk, timeout, &event_bulk));
-        event_line = THROW_ON_NULL(gpiod_line_bulk_get_line(&event_bulk, 0));
-        THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
+        THROW_ON_ERROR(debounce_wait_read_bulk(line_bulk, timeout, pline, &event));
     }
     old_time = event.ts;
 
-    THROW_ON_ERROR(debounce_wait(event_line, NULL));
-    THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
+    //THROW_ON_ERROR(debounce_wait(event_line, NULL));
+    //THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
+    THROW_ON_ERROR(debounce_wait_read(event_line, NULL, &event));
     if (event.event_type != SWITCH_RELEASED)
     {
         return -1; // pressed too fast to register
