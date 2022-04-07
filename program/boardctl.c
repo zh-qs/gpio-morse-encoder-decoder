@@ -104,16 +104,11 @@ const struct timespec max_bounce_time = {0, 5000000}; // 5ms
 int debounce_wait_read(struct gpiod_line *line, const struct timespec *timeout, struct gpiod_line_event *event)
 {
     int res = gpiod_line_event_wait(line, timeout);
-    printf("po 1 czekaniu\n");
     if (res <= 0) return res;
     if (gpiod_line_event_read(line, event) == -1) return -1;
     while ((res = gpiod_line_event_wait(line, &max_bounce_time)) > 0)
     {
         if (res == -1) return -1;
-
-        printf("a");
-        fflush(stdout);
-
         if (gpiod_line_event_read(line, event) == -1) return -1;
     }
     return 1;
@@ -203,6 +198,7 @@ int wait_for_switches_then_get_line_and_time_pressed(struct gpiod_line_bulk *lin
     //THROW_ON_ERROR(debounce_wait(event_line, NULL));
     //THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
     THROW_ON_ERROR(debounce_wait_read(*pline, NULL, &event));
+    printf("wykryto!\n");
     if (event.event_type != SWITCH_RELEASED)
     {
         return -1; // pressed too fast to register
