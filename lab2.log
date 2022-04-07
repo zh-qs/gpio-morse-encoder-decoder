@@ -75,6 +75,594 @@ package zawiera stare pliki programu!
 napisałem bibliotekę i prosty program -> w końcu zadziałał
 
 
-jest ten program do Morse'aby
+jest ten program do Morse'a
 
-DODAJ KONFIGURACJĘ DO DEBUGOWANIA!!!
+utworzona paczka: edycja package/Config.in, dodanie folderu package/morse
+
+zaznaczenie opcji Target packages -> My packages -> morse
+
+debugowanie
+
+Korzystanie z debugera gdb
+Kompilacja odpowiednich pakietów:
+Target packages  Debugging,...  gdb  gdbserver
+Toolchain  Build cross gdb for the host
+Powinnismy tez wybrac:´
+Build options  build packages with debugging symbols
+Na systemie docelowym uruchamiamy nasz ˛a aplikacje za posrednictwem programu ´
+gdb server:
+gdbserver host:7654 MPATH/myapp
+Na stacji roboczej:
+BRPATH/output/host/usr/bin/aarch64-none-linux-gnu-gdb MPATH/myapp
+(scie ´ zka do debuggera mo ˙ ze zale ˙ ze˙ c od u ´ zywanego zestawu narz˛edzi) ˙
+a potem w sesji debuggera:
+set sysroot BRPATH/output/staging (tu s ˛a programy i biblioteki z symbolami
+dla debuggera)
+(gdb) target remote xxx.yyy.zzz.vvv:7654
+
+MORSE SIĘ URUCHAMIA
+
+Welcome to My Buildroot                                                         
+buildroot login: [   35.805904] cam-dummy-reg: disabling                        
+[   35.809515] cam1-reg: disabling                                              
+root                                                                            
+# morse                                                                         
+Wybierz tryb:                                                                   
+ 1. Nadawanie                                                                   
+ 2. Odbieranie                                                                  
+ 3. Wyjscie                                                                     
+1                                                                               
+Wpisz tutaj ciag znakow, ktory ma byc zakodowany, i nacisnij ENTER:             
+SOS                                                                             
+Nadawanie...OK                                                                  
+Wybierz tryb:                                                                   
+ 1. Nadawanie                                                                   
+ 2. Odbieranie                                                                  
+ 3. Wyjscie                                                                     
+3                                                                               
+# 
+
+GDB
+
+RPI
+# gdbserver localhost:7654 morse                                                
+Process morse created; pid = 178                                                
+Listening on port 7654 
+
+KOMP
+
+turs@p30313 /malina/turs/program $ code .
+turs@p30313 /malina/turs/program $ cd ..
+turs@p30313 /malina/turs $ set sysroot /malina/turs/buildroot-2022.02/output/staging
+turs@p30313 /malina/turs $ gdb target remote 192.168.145.8:7654
+Excess command line arguments ignored. (192.168.145.8:7654)
+GNU gdb (GDB) 10.2
+Copyright (C) 2021 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "x86_64-pc-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<https://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+target: No such file or directory.
+/malina/turs/remote: No such file or directory.
+(gdb) q
+turs@p30313 /malina/turs $ gdb
+GNU gdb (GDB) 10.2
+Copyright (C) 2021 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "x86_64-pc-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<https://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word".
+(gdb) target remote 192.168.145.8:7654
+Remote debugging using 192.168.145.8:7654
+warning: while parsing target description (at line 4): Target description specified unknown architecture "aarch64"
+warning: Could not load XML target description; ignoring
+Reading /usr/bin/morse from remote target...
+warning: File transfers from remote targets can be slow. Use "set sysroot" to access files locally instead.
+Reading /usr/bin/morse from remote target...
+Reading symbols from target:/usr/bin/morse...
+(No debugging symbols found in target:/usr/bin/morse)
+Remote register badly formatted: T051d:0000000000000000;1f:a0c10bcd7f000000;20:003d4fb27f000000;thread:pa9.a9;core:2;
+here: 00000000;1f:a0c10bcd7f000000;20:003d4fb27f000000;thread:pa9.a9;core:2;
+(gdb) target remote 192.168.145.8:7654
+`target:/usr/bin/morse' has disappeared; keeping its symbols.
+Remote debugging using 192.168.145.8:7654
+warning: while parsing target description (at line 4): Target description specified unknown architecture "aarch64"
+warning: Could not load XML target description; ignoring
+Remote register badly formatted: T051d:0000000000000000;1f:a0c10bcd7f000000;20:003d4fb27f000000;thread:pa9.a9;core:2;
+here: 00000000;1f:a0c10bcd7f000000;20:003d4fb27f000000;thread:pa9.a9;core:2;
+(gdb) target remote 192.168.145.8:7654
+`target:/usr/bin/morse' has disappeared; keeping its symbols.
+Remote debugging using 192.168.145.8:7654
+warning: while parsing target description (at line 4): Target description specified unknown architecture "aarch64"
+warning: Could not load XML target description; ignoring
+Remote register badly formatted: T051d:0000000000000000;1f:a0c10bcd7f000000;20:003d4fb27f000000;thread:pa9.a9;core:2;
+here: 00000000;1f:a0c10bcd7f000000;20:003d4fb27f000000;thread:pa9.a9;core:2;
+(gdb) monitor exit
+"monitor" command not supported by this target.
+(gdb) target extended-remote 192.168.145.8:7654
+`target:/usr/bin/morse' has disappeared; keeping its symbols.
+Remote debugging using 192.168.145.8:7654
+warning: while parsing target description (at line 4): Target description specified unknown architecture "aarch64"
+warning: Could not load XML target description; ignoring
+Remote register badly formatted: T051d:0000000000000000;1f:a0c10bcd7f000000;20:003d4fb27f000000;thread:pa9.a9;core:2;
+here: 00000000;1f:a0c10bcd7f000000;20:003d4fb27f000000;thread:pa9.a9;core:2;
+(gdb) monitor exit
+"monitor" command not supported by this target.
+(gdb) target extended-remote 192.168.145.8:7654
+`target:/usr/bin/morse' has disappeared; keeping its symbols.
+Remote debugging using 192.168.145.8:7654
+warning: while parsing target description (at line 4): Target description specified unknown architecture "aarch64"
+warning: Could not load XML target description; ignoring
+Remote register badly formatted: T051d:0000000000000000;1f:a0c10bcd7f000000;20:003d4fb27f000000;thread:pa9.a9;core:2;
+here: 00000000;1f:a0c10bcd7f000000;20:003d4fb27f000000;thread:pa9.a9;core:2;
+(gdb) q
+turs@p30313 /malina/turs $ 
+
+TU SIĘ NIE UDAŁO, SPRÓBUJĘ SAMĄ KOMPILACJĘ Z -g
+
+
+WYSZŁO
+
+KOMP
+
+turs@p30313 /malina/turs/buildroot-2022.02 $ output/host/opt/ext-toolchain/bin/aarch64-none-linux-gnu-gdb /home/samba/turs/Desktop/linsw/lab2/gpio-morse-encoder-decoder/program/morse
+GNU gdb (GNU Toolchain for the A-profile Architecture 10.3-2021.07 (arm-10.29)) 10.2.90.20210621-git
+Copyright (C) 2021 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "--host=x86_64-pc-linux-gnu --target=aarch64-none-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<https://bugs.linaro.org/>.
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from /home/samba/turs/Desktop/linsw/lab2/gpio-morse-encoder-decoder/program/morse...
+(gdb) set sysroot /malina/turs/buildroot-2022.02/output/staging
+(gdb) target remote 192.168.145.8:7654
+Remote debugging using 192.168.145.8:7654
+Reading symbols from /malina/turs/buildroot-2022.02/output/staging/lib/ld-linux-aarch64.so.1...
+0x0000007f8f1b3d00 in _start ()
+   from /malina/turs/buildroot-2022.02/output/staging/lib/ld-linux-aarch64.so.1
+(gdb) run
+The "remote" target does not support "run".  Try "help target" or "continue".
+(gdb) continue
+Continuing.
+
+break
+[Inferior 1 (process 187) exited normally]
+(gdb) 
+The program is not being run.
+(gdb) break
+Breakpoint 1 at 0x7f8f1b3d00
+(gdb) 
+
+RPI
+
+# gdbserver localhost:7654 ./morse                                              
+Process ./morse created; pid = 187                                              
+Listening on port 7654                                                          
+Remote debugging from host 192.168.145.103, port 52216                          
+Wybierz tryb:                                                                   
+ 1. Nadawanie                                                                   
+ 2. Odbieranie                                                                  
+ 3. Wyjscie                                                                     
+1                                                                               
+Wpisz tutaj ciag znakow, ktory ma byc zakodowany, i nacisnij ENTER:             
+sos                                                                             
+Nadawanie...OK                                                                  
+Wybierz tryb:                                                                   
+ 1. Nadawanie                                                                   
+ 2. Odbieranie                                                                  
+ 3. Wyjscie                                                                     
+3                                                                               
+                                                                                
+Child exited with status 0                                                      
+# 
+
+
+DEV/TTYAMA0
+
+NIE DZIAŁAŁO
+
+# gdbserver /dev/ttyAMA0 ./morse                                                
+Process ./morse created; pid = 183                                              
+Remote debugging using /dev/ttyAMA0 
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               e
+will reopen the connection.                                                     
+                           Remote debugging using /dev/ttyAMA0                  
+                                                              readchar: Input/or
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+                                                                               0
+                                                                               r
+                                                                               .
+
+
+
+
+
+
+
+
+
