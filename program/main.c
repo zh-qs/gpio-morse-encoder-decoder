@@ -28,7 +28,6 @@ void encode_mode(struct board *b)
 {
     //char str[MAX_STRING];
     char c;
-    clear_line_buffer_bulk(&b->switch123);
     printf("Wpisz tutaj ciag znakow, ktory ma byc zakodowany, i nacisnij ENTER:\n");
     //scanf(SCANF_PATTERN, str);
     scanf(" %c", &c);
@@ -59,7 +58,8 @@ void decode_mode(struct board *b)
     calibrate(b, &(options.dot_time));
     printf("Nadawanie kodu: SW1, zakonczenie nadawania: SW3\n\n");
     enum read_status status = NEW_WORD;
-    //clear_line_buffer_bulk(b->switch123);
+
+    clear_line_buffer_bulk(&b->switch123);
     while (status != STOP)
     {
         printf("%c", morse_getchar(b, &status, &options));

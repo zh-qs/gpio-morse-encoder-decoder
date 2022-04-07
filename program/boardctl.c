@@ -197,6 +197,7 @@ int wait_for_switches_then_get_line_and_time_pressed(struct gpiod_line_bulk *lin
 
     //THROW_ON_ERROR(debounce_wait(event_line, NULL));
     //THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
+    printf("czekam na %p, dostepne: %p %p %p",*pline,gpiod_line_bulk_get_line(line_bulk,0),gpiod_line_bulk_get_line(line_bulk,1),gpiod_line_bulk_get_line(line_bulk,2));
     THROW_ON_ERROR(debounce_wait_read(*pline, NULL, &event));
     printf("wykryto!\n");
     if (event.event_type != SWITCH_RELEASED)
