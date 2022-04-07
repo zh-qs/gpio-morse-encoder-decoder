@@ -28,7 +28,7 @@ void encode_mode(struct board *b)
 {
     //char str[MAX_STRING];
     char c;
-    clear_line_buffer_bulk(b->switch123);
+    clear_line_buffer_bulk(&b->switch123);
     printf("Wpisz tutaj ciag znakow, ktory ma byc zakodowany, i nacisnij ENTER:\n");
     //scanf(SCANF_PATTERN, str);
     scanf(" %c", &c);
