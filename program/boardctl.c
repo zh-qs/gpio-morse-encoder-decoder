@@ -120,13 +120,13 @@ int debounce_wait_read_bulk(struct gpiod_line_bulk *lines, const struct timespec
     int res = gpiod_line_event_wait_bulk(lines, timeout, &event_bulk);
     printf("mam!\n");
     if (res <= 0) return res;
-    *line_read = THROW_ON_NULL(gpiod_line_bulk_get_line(lines, 0));
+    *line_read = THROW_ON_NULL(gpiod_line_bulk_get_line(&event_bulk, 0));
     printf("czekam w debounce na %p, dostepne: %p %p %p\n",*line_read,gpiod_line_bulk_get_line(lines,0),gpiod_line_bulk_get_line(lines,1),gpiod_line_bulk_get_line(lines,2));
     if (gpiod_line_event_read(*line_read, event) == -1) return -1;
     while ((res = gpiod_line_event_wait_bulk(lines, &max_bounce_time, &event_bulk)) > 0)
     {
         if (res == -1) return -1;
-        *line_read = THROW_ON_NULL(gpiod_line_bulk_get_line(lines, 0));
+        *line_read = THROW_ON_NULL(gpiod_line_bulk_get_line(&event_bulk, 0));
         if (gpiod_line_event_read(*line_read, event) == -1) return -1;
     }
     return 1;
