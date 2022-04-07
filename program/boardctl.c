@@ -186,7 +186,6 @@ int wait_for_switches_then_get_line_and_time_pressed(struct gpiod_line_bulk *lin
 {
 #ifdef WITH_GPIO
     struct gpiod_line_event event;
-    struct gpiod_line *event_line;
     struct timespec old_time;
     int ret = THROW_ON_ERROR(debounce_wait_read_bulk(line_bulk, timeout, pline, &event));
     if (ret == 0) return 0;
@@ -198,14 +197,12 @@ int wait_for_switches_then_get_line_and_time_pressed(struct gpiod_line_bulk *lin
 
     //THROW_ON_ERROR(debounce_wait(event_line, NULL));
     //THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
-    THROW_ON_ERROR(debounce_wait_read(event_line, NULL, &event));
+    THROW_ON_ERROR(debounce_wait_read(*pline, NULL, &event));
     if (event.event_type != SWITCH_RELEASED)
     {
         return -1; // pressed too fast to register
     }
     diff_timespec(&(event.ts), &old_time, time);
-
-    *pline = event_line;
 
     return 1;
 #else
