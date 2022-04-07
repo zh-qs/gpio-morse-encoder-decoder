@@ -118,8 +118,10 @@ int debounce_wait_read_bulk(struct gpiod_line_bulk *lines, const struct timespec
 {
     struct gpiod_line_bulk event_bulk = GPIOD_LINE_BULK_INITIALIZER;
     int res = gpiod_line_event_wait_bulk(lines, timeout, &event_bulk);
+    printf("mam!\n");
     if (res <= 0) return res;
     *line_read = THROW_ON_NULL(gpiod_line_bulk_get_line(lines, 0));
+    printf("czekam w debounce na %p, dostepne: %p %p %p\n",*line_read,gpiod_line_bulk_get_line(lines,0),gpiod_line_bulk_get_line(lines,1),gpiod_line_bulk_get_line(lines,2));
     if (gpiod_line_event_read(*line_read, event) == -1) return -1;
     while ((res = gpiod_line_event_wait_bulk(lines, &max_bounce_time, &event_bulk)) > 0)
     {
@@ -187,17 +189,20 @@ int wait_for_switches_then_get_line_and_time_pressed(struct gpiod_line_bulk *lin
 #ifdef WITH_GPIO
     struct gpiod_line_event event;
     struct timespec old_time;
+    printf("czekam\n");
     int ret = THROW_ON_ERROR(debounce_wait_read_bulk(line_bulk, timeout, pline, &event));
+    printf("wczytano!\n");
     if (ret == 0) return 0;
     while (event.event_type != SWITCH_PRESSED)
     {
+        printf("tu chyba nie powinno mnie byc...\n");
         THROW_ON_ERROR(debounce_wait_read_bulk(line_bulk, timeout, pline, &event));
     }
     old_time = event.ts;
 
     //THROW_ON_ERROR(debounce_wait(event_line, NULL));
     //THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
-    printf("czekam na %p, dostepne: %p %p %p",*pline,gpiod_line_bulk_get_line(line_bulk,0),gpiod_line_bulk_get_line(line_bulk,1),gpiod_line_bulk_get_line(line_bulk,2));
+    printf("czekam na %p, dostepne: %p %p %p\n",*pline,gpiod_line_bulk_get_line(line_bulk,0),gpiod_line_bulk_get_line(line_bulk,1),gpiod_line_bulk_get_line(line_bulk,2));
     THROW_ON_ERROR(debounce_wait_read(*pline, NULL, &event));
     printf("wykryto!\n");
     if (event.event_type != SWITCH_RELEASED)
