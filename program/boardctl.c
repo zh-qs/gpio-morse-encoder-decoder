@@ -25,11 +25,6 @@ void register_board(struct board *b)
     b->switch3 = THROW_ON_NULL(gpiod_chip_get_line(b->chip, LINESW3));
     b->switch4 = THROW_ON_NULL(gpiod_chip_get_line(b->chip, LINESW4));
 
-    // czy musimy requestować input, zanim requestujemy eventy?
-    //THROW_ON_ERROR(gpiod_line_request_input(b->switch1, CONSUMER));
-    //THROW_ON_ERROR(gpiod_line_request_input(b->switch2, CONSUMER));
-    //THROW_ON_ERROR(gpiod_line_request_input(b->switch3, CONSUMER));
-    // gpiod_line_request_input(b->switch4, CONSUMER);
     THROW_ON_ERROR(gpiod_line_request_both_edges_events(b->switch1, CONSUMER));
     THROW_ON_ERROR(gpiod_line_request_both_edges_events(b->switch2, CONSUMER));
     THROW_ON_ERROR(gpiod_line_request_both_edges_events(b->switch3, CONSUMER));
@@ -101,6 +96,7 @@ void unregister_board(struct board *b)
 #ifdef WITH_GPIO
 const struct timespec max_bounce_time = {0, 5000000}; // 5ms
 
+// returns: 1 - event read, 0 - timeout, -1 - error
 int debounce_wait_read(struct gpiod_line *line, const struct timespec *timeout, struct gpiod_line_event *event)
 {
     int res = gpiod_line_event_wait(line, timeout);
@@ -114,14 +110,15 @@ int debounce_wait_read(struct gpiod_line *line, const struct timespec *timeout, 
     return 1;
 }
 
+// returns: 1 - event read, 0 - timeout, -1 - error
 int debounce_wait_read_bulk(struct gpiod_line_bulk *lines, const struct timespec *timeout, struct gpiod_line** line_read, struct gpiod_line_event *event)
 {
     struct gpiod_line_bulk event_bulk = GPIOD_LINE_BULK_INITIALIZER;
     int res = gpiod_line_event_wait_bulk(lines, timeout, &event_bulk);
-    //printf("mam!\n");
+
     if (res <= 0) return res;
     *line_read = THROW_ON_NULL(gpiod_line_bulk_get_line(&event_bulk, 0));
-    //printf("czekam w debounce na %p, dostepne: %p %p %p\n",*line_read,gpiod_line_bulk_get_line(lines,0),gpiod_line_bulk_get_line(lines,1),gpiod_line_bulk_get_line(lines,2));
+
     if (gpiod_line_event_read(*line_read, event) == -1) return -1;
     while ((res = gpiod_line_event_wait_bulk(lines, &max_bounce_time, &event_bulk)) > 0)
     {
@@ -139,19 +136,16 @@ int wait_for_switch_then_get_time_pressed(struct gpiod_line *line, struct timesp
     struct gpiod_line_event event;
     struct timespec old_time;
     THROW_ON_ERROR(debounce_wait_read(line, NULL, &event));
-    //THROW_ON_ERROR(gpiod_line_event_read(line, &event));
     while (event.event_type != SWITCH_PRESSED)
     {
         THROW_ON_ERROR(debounce_wait_read(line, NULL, &event));
-        //THROW_ON_ERROR(gpiod_line_event_read(line, &event));
     }
     old_time = event.ts;
 
     THROW_ON_ERROR(debounce_wait_read(line, NULL, &event));
-    //THROW_ON_ERROR(gpiod_line_event_read(line, &event));
     if (event.event_type != SWITCH_RELEASED)
     {
-        return -1; // pressed too fast to register
+        return -1; 
     }
     diff_timespec(&(event.ts), &old_time, time);
     return 1;
@@ -189,25 +183,20 @@ int wait_for_switches_then_get_line_and_time_pressed(struct gpiod_line_bulk *lin
 #ifdef WITH_GPIO
     struct gpiod_line_event event;
     struct timespec old_time;
-    //printf("czekam\n");
+
     int ret = THROW_ON_ERROR(debounce_wait_read_bulk(line_bulk, timeout, pline, &event));
-    //printf("wczytano!\n");
     if (ret == 0) return 0;
+
     while (event.event_type != SWITCH_PRESSED)
     {
-        //printf("tu chyba nie powinno mnie byc...\n");
         THROW_ON_ERROR(debounce_wait_read_bulk(line_bulk, timeout, pline, &event));
     }
     old_time = event.ts;
 
-    //THROW_ON_ERROR(debounce_wait(event_line, NULL));
-    //THROW_ON_ERROR(gpiod_line_event_read(event_line, &event));
-    //printf("czekam na %p, dostepne: %p %p %p\n",*pline,gpiod_line_bulk_get_line(line_bulk,0),gpiod_line_bulk_get_line(line_bulk,1),gpiod_line_bulk_get_line(line_bulk,2));
     THROW_ON_ERROR(debounce_wait_read(*pline, NULL, &event));
-    //printf("wykryto!\n");
     if (event.event_type != SWITCH_RELEASED)
     {
-        return -1; // pressed too fast to register
+        return -1; 
     }
     diff_timespec(&(event.ts), &old_time, time);
 

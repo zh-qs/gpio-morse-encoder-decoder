@@ -160,7 +160,6 @@ char morse_getchar_base(struct board *b, enum read_status *status, struct timesp
                 *status = NEW_WORD;
                 return ' ';
             }
-            // tu trzeba przejść za pierwsze czekanie w NEW WORD
             turn_off_diode(b->diode3_green);
             break;
         case NEW_WORD:
@@ -234,7 +233,6 @@ void calibrate(struct board *b, struct timespec *dot_time)
     clear_line_buffer(b->switch1);
     printf("Wcisnij przycisk SW1 %d razy, aby ustalic czas trwania pojedynczej kropki:\n", N_CALIBRATION);
     struct timespec ts;
-    //clear_line_buffer(b->switch1);
     for (int i=0;i<N_CALIBRATION;)
     {
         if (wait_for_switch_then_get_time_pressed(b->switch1, &ts) == 1)

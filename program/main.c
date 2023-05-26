@@ -2,12 +2,6 @@
 #include "boardctl.h"
 #include <stdio.h>
 
-#define STR(s) #s
-#define XSTR(s) STR(s)
-
-#define MAX_STRING 1000
-//#define SCANF_PATTERN "%" XSTR(MAX_STRING) "d"
-
 enum mode
 {
     ENCODE = 1, DECODE, EXIT
@@ -26,10 +20,8 @@ enum mode get_mode()
 
 void encode_mode(struct board *b)
 {
-    //char str[MAX_STRING];
     char c;
     printf("Wpisz tutaj ciag znakow, ktory ma byc zakodowany, i nacisnij ENTER:\n");
-    //scanf(SCANF_PATTERN, str);
     scanf(" %c", &c);
     printf("Nadawanie...");
     fflush(stdout);
@@ -39,7 +31,6 @@ void encode_mode(struct board *b)
         send_char(b, c);
         scanf("%c", &c);
     } 
-    //send_string(b, str);
     turn_off_diode(b->diode1_red);
     printf("OK\n");
 }

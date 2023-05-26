@@ -1,5 +1,0 @@
-config BR2_PACKAGE_MORSE
-    bool "morse"
-    depends on BR2_PACKAGE_LIBGPIOD
-    help
-        Encoder and decoder of Morse code
